@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#4f46e5" />
+  <title>Días de vacaciones</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Aviso si Firebase no está configurado -->
+  <div id="config-warning" class="config-warning hidden">
+    ⚠️ Falta configurar Firebase. Abre <code>firebase-config.js</code> y pega tus claves
+    (mira el <code>README.md</code>).
+  </div>
+
+  <header class="app-header">
+    <div class="header-top">
+      <h1>🏖️ Días de vacaciones</h1>
+      <span id="participants-count" class="pill">0 personas</span>
+    </div>
+    <div class="header-name">
+      <label for="nameInput">Tu nombre:</label>
+      <input id="nameInput" type="text" placeholder="Escribe tu nombre" autocomplete="name" maxlength="24" />
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button id="tab-mine" class="tab active" data-view="mine">📅 Mi calendario</button>
+    <button id="tab-group" class="tab" data-view="group">👥 Resumen del grupo</button>
+  </nav>
+
+  <div id="legend-mine" class="legend">
+    <span class="leg"><i class="sw libre"></i>Libre</span>
+    <span class="leg"><i class="sw ocupado"></i>Ocupado</span>
+    <span class="leg"><i class="sw inseguro"></i>Inseguro</span>
+    <p class="hint">Toca un día para cambiarlo: Libre → Ocupado → Inseguro. Usa <b>sem</b> para una semana entera.</p>
+  </div>
+
+  <div id="legend-group" class="legend hidden">
+    <span class="leg"><i class="sw heat-good"></i>Todos libres</span>
+    <span class="leg"><i class="sw heat-bad"></i>Pocos libres</span>
+    <p class="hint">El número es cuánta gente está libre ese día. Toca un día para ver el detalle.</p>
+  </div>
+
+  <main id="app"></main>
+
+  <!-- Panel de detalle (vista grupo) -->
+  <div id="detail" class="detail hidden">
+    <button id="detail-close" class="detail-close" aria-label="Cerrar">✕</button>
+    <div id="detail-content"></div>
+  </div>
+
+  <!-- Modal para pedir el nombre -->
+  <div id="name-modal" class="modal hidden">
+    <div class="modal-box">
+      <h2>👋 ¡Bienvenido/a!</h2>
+      <p>Escribe tu nombre para empezar a marcar tus días.</p>
+      <input id="modalNameInput" type="text" placeholder="Tu nombre" maxlength="24" />
+      <button id="modalNameBtn">Empezar</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- Firebase (compat: funciona sin servidor y abriendo el archivo directamente) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
