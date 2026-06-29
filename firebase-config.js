@@ -10,10 +10,11 @@
 // -------------------------------------------------------------
 
 const firebaseConfig = {
-  apiKey: "<PEGA_AQUÍ_TU_API_KEY>",
-  authDomain: "<PEGA_AQUÍ>.firebaseapp.com",
-  projectId: "<PEGA_AQUÍ_PROJECT_ID>",
-  storageBucket: "<PEGA_AQUÍ>.appspot.com",
-  messagingSenderId: "<PEGA_AQUÍ>",
-  appId: "<PEGA_AQUÍ>"
+  apiKey: "AIzaSyAYMhKKxwDNkDO6Bj4CzzeXRslVI45GJeY",
+  authDomain: "dias-de-vacaciones.firebaseapp.com",
+  projectId: "dias-de-vacaciones",
+  storageBucket: "dias-de-vacaciones.firebasestorage.app",
+  messagingSenderId: "155850650391",
+  appId: "1:155850650391:web:d7396d05837e0f8aa4bd52",
+  measurementId: "G-3DX3W22ZT5"
 };
