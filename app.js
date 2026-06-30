@@ -152,7 +152,7 @@ function cycleWeek(dates) {
 // ---- Estadísticas de grupo ----------------------------------
 function dayStats(date) {
   let busy = 0, maybe = 0, free = 0;
-  const people = Object.values(state.participants);
+  const people = Object.values(effectiveParticipants());
   people.forEach(p => {
     const s = (p.dias || {})[date];
     if (s === "ocupado") busy++;
@@ -167,7 +167,7 @@ const app = document.getElementById("app");
 
 function render() {
   // contador de participantes
-  const n = Object.keys(state.participants).length;
+  const n = Object.keys(effectiveParticipants()).length;
   document.getElementById("participants-count").textContent =
     n === 1 ? "1 persona" : `${n} personas`;
 
@@ -216,7 +216,7 @@ function renderWeek(week, mode) {
 // ---- Panel de detalle (vista grupo) -------------------------
 function showDetail(date) {
   const busy = [], maybe = [], free = [];
-  Object.values(state.participants).forEach(p => {
+  Object.values(effectiveParticipants()).forEach(p => {
     const s = (p.dias || {})[date];
     const nm = p.name || "—";
     if (s === "ocupado") busy.push(nm);
@@ -255,18 +255,29 @@ function escapeHtml(s) {
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
-// Un registro por nombre (el más reciente), ordenado alfabéticamente.
-function uniqueParticipantNames() {
+// Colapsa documentos con el mismo nombre en uno solo. Ante duplicados, se queda
+// con el que tiene MÁS días marcados (en empate, el más reciente). Así un duplicado
+// vacío nunca tapa tus datos, ni en la lista ni en el resumen del grupo.
+function effectiveParticipants() {
   const byName = {};
   Object.entries(state.participants).forEach(([id, p]) => {
     const nm = (p.name || "").trim();
     if (!nm) return;
     const key = normName(nm);
-    if (!byName[key] || (p.updatedAt || 0) > (byName[key].updatedAt || 0)) {
-      byName[key] = { id, name: nm, updatedAt: p.updatedAt || 0 };
+    const count = p.dias ? Object.keys(p.dias).length : 0;
+    const prev = byName[key];
+    if (!prev || count > prev.count ||
+        (count === prev.count && (p.updatedAt || 0) > prev.updatedAt)) {
+      byName[key] = { id, name: nm, dias: p.dias || {}, count, updatedAt: p.updatedAt || 0 };
     }
   });
-  return Object.values(byName).sort((a, b) => a.name.localeCompare(b.name, "es"));
+  return byName;
+}
+
+// Lista de nombres únicos (uno por persona), ordenada alfabéticamente.
+function uniqueParticipantNames() {
+  return Object.values(effectiveParticipants())
+    .sort((a, b) => a.name.localeCompare(b.name, "es"));
 }
 
 function setName(name) {
