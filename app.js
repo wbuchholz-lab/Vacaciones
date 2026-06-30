@@ -119,6 +119,8 @@ function subscribe() {
         state.loadedMine = true;
       }
       render();
+      // Ya tenemos la lista de participantes: si no hay nombre, mostramos la bienvenida.
+      if (!welcomeShown && !state.name) { welcomeShown = true; showWelcome(); }
     },
     err => {
       console.error("Error de conexión:", err);
@@ -245,15 +247,86 @@ function showToast(msg) {
   toastTimer = setTimeout(() => t.classList.add("hidden"), 2500);
 }
 
-// ---- Nombre / modal -----------------------------------------
+// ---- Nombre / identidad / bienvenida ------------------------
+const normName = s => (s || "").trim().toLowerCase();
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+// Un registro por nombre (el más reciente), ordenado alfabéticamente.
+function uniqueParticipantNames() {
+  const byName = {};
+  Object.entries(state.participants).forEach(([id, p]) => {
+    const nm = (p.name || "").trim();
+    if (!nm) return;
+    const key = normName(nm);
+    if (!byName[key] || (p.updatedAt || 0) > (byName[key].updatedAt || 0)) {
+      byName[key] = { id, name: nm, updatedAt: p.updatedAt || 0 };
+    }
+  });
+  return Object.values(byName).sort((a, b) => a.name.localeCompare(b.name, "es"));
+}
+
 function setName(name) {
   state.name = name.trim();
   localStorage.setItem("vac_name", state.name);
   document.getElementById("nameInput").value = state.name;
   scheduleSave();
 }
-function maybeAskName() {
-  if (!state.name) document.getElementById("name-modal").classList.remove("hidden");
+
+// "Convertirse" en un participante que ya existe: carga sus días y su id.
+function claimIdentity(id) {
+  const p = state.participants[id];
+  if (!p) return;
+  state.uid = id;
+  localStorage.setItem("vac_uid", id);
+  state.name = (p.name || "").trim();
+  localStorage.setItem("vac_name", state.name);
+  state.myDays = { ...(p.dias || {}) };
+  state.loadedMine = true;
+  document.getElementById("nameInput").value = state.name;
+  document.getElementById("name-modal").classList.add("hidden");
+  render();
+}
+
+// Entrar con un nombre escrito: si ya existe, reconecta; si no, usuario nuevo.
+function submitName(raw) {
+  const v = (raw || "").trim();
+  if (!v) return false;
+  const match = uniqueParticipantNames().find(n => normName(n.name) === normName(v));
+  if (match) {
+    claimIdentity(match.id);
+  } else {
+    setName(v);
+    document.getElementById("name-modal").classList.add("hidden");
+  }
+  return true;
+}
+
+let welcomeShown = false;
+function showWelcome() {
+  const modal = document.getElementById("name-modal");
+  const wrap = document.getElementById("existing-wrap");
+  const list = document.getElementById("existing-names");
+  const cancel = document.getElementById("welcome-cancel");
+  const input = document.getElementById("modalNameInput");
+
+  const names = uniqueParticipantNames();
+  if (names.length) {
+    list.innerHTML = names
+      .map(n => `<button class="name-chip" data-id="${n.id}">${escapeHtml(n.name)}</button>`)
+      .join("");
+    wrap.classList.remove("hidden");
+  } else {
+    wrap.classList.add("hidden");
+  }
+
+  // El botón de cancelar solo aparece si ya tenías nombre (modo "cambiar de usuario").
+  cancel.classList.toggle("hidden", !state.name);
+  input.value = "";
+  modal.classList.remove("hidden");
 }
 
 // ---- Eventos ------------------------------------------------
@@ -262,14 +335,14 @@ function wireEvents() {
   app.addEventListener("click", e => {
     const wk = e.target.closest("[data-week]");
     if (wk) {
-      if (!state.name) { maybeAskName(); return; }
+      if (!state.name) { showWelcome(); return; }
       cycleWeek(wk.dataset.week.split(","));
       return;
     }
     const day = e.target.closest("[data-date]");
     if (!day) return;
     if (state.view === "mine") {
-      if (!state.name) { maybeAskName(); return; }
+      if (!state.name) { showWelcome(); return; }
       cycleDay(day.dataset.date);
     } else {
       showDetail(day.dataset.date);
@@ -297,18 +370,26 @@ function wireEvents() {
     nameTimer = setTimeout(() => setName(nameInput.value), 400);
   });
 
-  // modal de nombre
+  // pantalla de bienvenida / cambio de usuario
   const modal = document.getElementById("name-modal");
   const modalInput = document.getElementById("modalNameInput");
   const modalBtn = document.getElementById("modalNameBtn");
-  const submitModal = () => {
-    const v = modalInput.value.trim();
-    if (!v) { modalInput.focus(); return; }
-    setName(v);
-    modal.classList.add("hidden");
-  };
-  modalBtn.addEventListener("click", submitModal);
-  modalInput.addEventListener("keydown", e => { if (e.key === "Enter") submitModal(); });
+  const submit = () => { if (!submitName(modalInput.value)) modalInput.focus(); };
+  modalBtn.addEventListener("click", submit);
+  modalInput.addEventListener("keydown", e => { if (e.key === "Enter") submit(); });
+
+  // tocar un nombre que ya existe
+  document.getElementById("existing-names").addEventListener("click", e => {
+    const chip = e.target.closest("[data-id]");
+    if (chip) claimIdentity(chip.dataset.id);
+  });
+
+  // cancelar (solo disponible al cambiar de usuario)
+  document.getElementById("welcome-cancel").addEventListener("click", () =>
+    modal.classList.add("hidden"));
+
+  // botón "cambiar" junto al nombre
+  document.getElementById("switchUserBtn").addEventListener("click", showWelcome);
 
   // cerrar detalle
   document.getElementById("detail-close").addEventListener("click", () =>
@@ -332,12 +413,12 @@ function passphraseOk() {
 // ---- Arranque -----------------------------------------------
 function init() {
   if (!passphraseOk()) return;
-  if (!firebaseReady) {
-    document.getElementById("config-warning").classList.remove("hidden");
-  }
   wireEvents();
   render();
-  maybeAskName();
+  if (!firebaseReady) {
+    document.getElementById("config-warning").classList.remove("hidden");
+    if (!state.name) showWelcome();
+  }
   subscribe();
 }
 init();
