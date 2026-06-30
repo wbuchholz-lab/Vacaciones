@@ -9,12 +9,11 @@
 </head>
 <body>
 
-  <!-- Cargando (mientras comprobamos la sesión) -->
+  <!-- Cargando -->
   <div id="loading-view" class="center-screen">
     <div class="spinner"></div>
   </div>
 
-  <!-- Aviso si Firebase no está configurado -->
   <div id="config-warning" class="config-warning hidden">
     ⚠️ Falta configurar Firebase / activar el login. Revisa los pasos de la Fase 0.
   </div>
@@ -25,13 +24,8 @@
       <div class="login-logo">🏖️</div>
       <h1>Vacaciones en grupo</h1>
       <p class="login-sub">Organiza con tus grupos qué días estáis libres.</p>
-
-      <button id="google-btn" class="btn-google">
-        <span class="g-icon">G</span> Entrar con Google
-      </button>
-
+      <button id="google-btn" class="btn-google"><span class="g-icon">G</span> Entrar con Google</button>
       <div class="divider"><span>o con tu email</span></div>
-
       <div class="email-box">
         <input id="email-input" type="email" inputmode="email" placeholder="tu@email.com" autocomplete="email" />
         <button id="email-btn" class="btn-primary">Enviarme un enlace</button>
@@ -40,7 +34,7 @@
     </div>
   </section>
 
-  <!-- ===================== APP (logueado) ===================== -->
+  <!-- ===================== TOPBAR ===================== -->
   <header id="topbar" class="topbar hidden">
     <span class="topbar-title">🏖️ Vacaciones</span>
     <div class="user-menu">
@@ -59,17 +53,86 @@
     </div>
   </header>
 
+  <!-- ===================== HOME ===================== -->
   <main id="home-view" class="home hidden">
-    <h2>Tus grupos</h2>
-    <div id="groups-list" class="groups-list">
-      <!-- Fase 2: aquí aparecerán las tarjetas de grupos -->
+    <div class="home-head">
+      <h2>Tus grupos</h2>
+      <button id="create-btn" class="btn-primary btn-sm">➕ Crear grupo</button>
     </div>
-    <div id="groups-empty" class="empty-state">
+    <div id="groups-list" class="groups-list"></div>
+    <div id="groups-empty" class="empty-state hidden">
       <div class="empty-emoji">📭</div>
       <p>Aún no tienes grupos.</p>
-      <p class="muted">La creación de grupos llega en la <b>Fase 2</b>. De momento, ¡el login y tu perfil ya funcionan! 🎉</p>
+      <p class="muted">Crea uno y comparte el enlace con tu gente.</p>
     </div>
   </main>
+
+  <!-- ===================== GRUPO ===================== -->
+  <section id="group-view" class="hidden">
+    <div class="group-header">
+      <button id="back-btn" class="icon-btn" aria-label="Volver">←</button>
+      <div class="group-titles">
+        <div id="group-name" class="group-name"></div>
+        <div id="group-sub" class="group-sub"></div>
+      </div>
+      <button id="share-btn" class="icon-btn" aria-label="Invitar">🔗</button>
+    </div>
+
+    <nav class="tabs">
+      <button class="tab active" data-gtab="mine">📅 Mi calendario</button>
+      <button class="tab" data-gtab="summary">👥 Resumen</button>
+    </nav>
+
+    <!-- Interruptor de base (solo en "Mi calendario") -->
+    <div id="baseline-bar" class="baseline-bar">
+      <span class="baseline-label">Por defecto estoy:</span>
+      <div class="baseline-toggle">
+        <button class="base-opt" data-base="libre">🟢 Libre</button>
+        <button class="base-opt" data-base="ocupado">🔴 Ocupado</button>
+      </div>
+    </div>
+
+    <div id="legend-mine" class="legend">
+      <span class="leg"><i class="sw libre"></i>Libre</span>
+      <span class="leg"><i class="sw ocupado"></i>Ocupado</span>
+      <span class="leg"><i class="sw inseguro"></i>Inseguro</span>
+      <p class="hint">Toca un día para cambiarlo. Marca solo lo que se sale de tu "por defecto". <b>sem</b> = semana entera.</p>
+    </div>
+    <div id="legend-summary" class="legend hidden">
+      <span class="leg"><i class="sw heat-good"></i>Todos libres</span>
+      <span class="leg"><i class="sw heat-bad"></i>Pocos libres</span>
+      <p class="hint">El número es cuánta gente está libre ese día. Toca un día para ver el detalle.</p>
+    </div>
+
+    <div id="calendar" class="calendar"></div>
+
+    <div id="gdetail" class="detail hidden">
+      <button id="gdetail-close" class="detail-close" aria-label="Cerrar">✕</button>
+      <div id="gdetail-content"></div>
+    </div>
+  </section>
+
+  <!-- Modal crear grupo -->
+  <div id="create-modal" class="modal hidden">
+    <div class="modal-box">
+      <button id="create-close" class="modal-close" type="button" aria-label="Cerrar">✕</button>
+      <h2>➕ Nuevo grupo</h2>
+      <label class="field-label" for="cg-name">Nombre del grupo</label>
+      <input id="cg-name" type="text" maxlength="40" placeholder="Ej. Escapada de verano" />
+      <div class="month-row">
+        <div>
+          <label class="field-label" for="cg-start">Desde</label>
+          <input id="cg-start" type="month" />
+        </div>
+        <div>
+          <label class="field-label" for="cg-end">Hasta</label>
+          <input id="cg-end" type="month" />
+        </div>
+      </div>
+      <p id="cg-msg" class="email-msg"></p>
+      <button id="cg-create" class="btn-primary">Crear grupo</button>
+    </div>
+  </div>
 
   <!-- Modal editar perfil -->
   <div id="profile-modal" class="modal hidden">
@@ -82,13 +145,33 @@
     </div>
   </div>
 
+  <!-- Modal compartir (invitar) -->
+  <div id="share-modal" class="modal hidden">
+    <div class="modal-box">
+      <button id="share-close" class="modal-close" type="button" aria-label="Cerrar">✕</button>
+      <h2>🔗 Invitar al grupo</h2>
+      <p class="muted" id="share-text">Comparte este enlace con tu gente para que se unan:</p>
+      <input id="share-link" type="text" readonly />
+      <button id="share-copy" class="btn-primary">📋 Copiar enlace</button>
+      <button id="share-native" class="btn-secondary">Compartir…</button>
+    </div>
+  </div>
+
+  <!-- Modal unirse al grupo -->
+  <div id="join-modal" class="modal hidden">
+    <div class="modal-box">
+      <h2>👋 Te han invitado</h2>
+      <p id="join-text" class="muted">Cargando…</p>
+      <button id="join-accept" class="btn-primary">Unirme al grupo</button>
+      <button id="join-cancel" class="btn-secondary">Cancelar</button>
+    </div>
+  </div>
+
   <div id="toast" class="toast hidden"></div>
 
-  <!-- Firebase (compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-  <!-- Reutilizamos la misma configuración del proyecto -->
   <script src="../firebase-config.js"></script>
   <script src="app.js"></script>
 </body>
