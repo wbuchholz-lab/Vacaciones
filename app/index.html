@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#4f46e5" />
+  <title>Vacaciones en grupo</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Cargando (mientras comprobamos la sesión) -->
+  <div id="loading-view" class="center-screen">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- Aviso si Firebase no está configurado -->
+  <div id="config-warning" class="config-warning hidden">
+    ⚠️ Falta configurar Firebase / activar el login. Revisa los pasos de la Fase 0.
+  </div>
+
+  <!-- ===================== LOGIN ===================== -->
+  <section id="login-view" class="center-screen hidden">
+    <div class="login-card">
+      <div class="login-logo">🏖️</div>
+      <h1>Vacaciones en grupo</h1>
+      <p class="login-sub">Organiza con tus grupos qué días estáis libres.</p>
+
+      <button id="google-btn" class="btn-google">
+        <span class="g-icon">G</span> Entrar con Google
+      </button>
+
+      <div class="divider"><span>o con tu email</span></div>
+
+      <div class="email-box">
+        <input id="email-input" type="email" inputmode="email" placeholder="tu@email.com" autocomplete="email" />
+        <button id="email-btn" class="btn-primary">Enviarme un enlace</button>
+      </div>
+      <p id="email-msg" class="email-msg"></p>
+    </div>
+  </section>
+
+  <!-- ===================== APP (logueado) ===================== -->
+  <header id="topbar" class="topbar hidden">
+    <span class="topbar-title">🏖️ Vacaciones</span>
+    <div class="user-menu">
+      <button id="user-btn" class="user-btn" aria-label="Tu cuenta">
+        <span id="user-avatar" class="avatar">?</span>
+      </button>
+      <div id="user-dropdown" class="dropdown hidden">
+        <div class="dropdown-head">
+          <div id="dd-name" class="dd-name"></div>
+          <div id="dd-email" class="dd-email"></div>
+        </div>
+        <button id="profile-btn" class="dropdown-item">👤 Editar perfil</button>
+        <button id="newgroup-btn" class="dropdown-item">➕ Crear grupo</button>
+        <button id="signout-btn" class="dropdown-item danger">↩️ Cerrar sesión</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="home-view" class="home hidden">
+    <h2>Tus grupos</h2>
+    <div id="groups-list" class="groups-list">
+      <!-- Fase 2: aquí aparecerán las tarjetas de grupos -->
+    </div>
+    <div id="groups-empty" class="empty-state">
+      <div class="empty-emoji">📭</div>
+      <p>Aún no tienes grupos.</p>
+      <p class="muted">La creación de grupos llega en la <b>Fase 2</b>. De momento, ¡el login y tu perfil ya funcionan! 🎉</p>
+    </div>
+  </main>
+
+  <!-- Modal editar perfil -->
+  <div id="profile-modal" class="modal hidden">
+    <div class="modal-box">
+      <button id="profile-close" class="modal-close" type="button" aria-label="Cerrar">✕</button>
+      <h2>👤 Tu perfil</h2>
+      <label class="field-label" for="profile-name">Nombre que verá tu grupo</label>
+      <input id="profile-name" type="text" maxlength="24" placeholder="Tu nombre" />
+      <button id="profile-save" class="btn-primary">Guardar</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- Firebase (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <!-- Reutilizamos la misma configuración del proyecto -->
+  <script src="../firebase-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
