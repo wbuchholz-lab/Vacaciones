@@ -322,9 +322,10 @@ function effState(member, day) {
 }
 function effectiveMembers() {
   const g = state.g, out = {};
-  Object.entries(g.members).forEach(([uid, m]) => { out[uid] = m; });
+  const set = new Set((g.data && g.data.memberUids) || []);
+  Object.entries(g.members).forEach(([uid, m]) => { if (set.has(uid)) out[uid] = m; });
   const uid = auth.currentUser.uid;
-  out[uid] = { ...(out[uid] || {}), displayName: state.profile.displayName, baseline: g.baseline, dias: g.myDays };
+  if (set.has(uid)) out[uid] = { ...(out[uid] || {}), displayName: state.profile.displayName, baseline: g.baseline, dias: g.myDays };
   return out;
 }
 function dayStats(day) {
@@ -387,6 +388,8 @@ function renderGroup() {
 
   $("calendar").innerHTML = monthList(g.data.startMonth, g.data.endMonth)
     .map(({ year, month }) => renderMonth(year, month, g.tab)).join("");
+
+  if (!$("settings-modal").classList.contains("hidden")) renderSettingsMembers();
 }
 function renderMonth(y, m, mode) {
   const weeks = buildWeeks(y, m);
@@ -440,6 +443,82 @@ function openShare() {
   if (!state.g) return;
   $("share-link").value = inviteLink();
   show($("share-modal"));
+}
+
+// ---- Ajustes del grupo --------------------------------------
+function openSettings() {
+  const g = state.g;
+  if (!g || !g.data) return;
+  const iAmOwner = g.data.ownerUid === auth.currentUser.uid;
+  $("settings-owner").classList.toggle("hidden", !iAmOwner);
+  $("set-delete").classList.toggle("hidden", !iAmOwner);
+  $("set-leave").classList.toggle("hidden", iAmOwner);
+  $("set-name").value = g.data.name || "";
+  $("set-start").value = g.data.startMonth || "";
+  $("set-end").value = g.data.endMonth || "";
+  renderSettingsMembers();
+  show($("settings-modal"));
+}
+function renderSettingsMembers() {
+  const g = state.g;
+  if (!g || !g.data) return;
+  const owner = g.data.ownerUid, myUid = auth.currentUser.uid;
+  const iAmOwner = owner === myUid;
+  const uids = g.data.memberUids || [];
+  $("set-count").textContent = uids.length;
+  $("set-members").innerHTML = uids.map(uid => {
+    const m = g.members[uid] || {};
+    const name = uid === myUid ? state.profile.displayName : (m.displayName || "—");
+    const isOwner = uid === owner;
+    const badge = isOwner ? '<span class="owner-badge">dueño</span>' : "";
+    const kick = (iAmOwner && !isOwner) ? `<button class="kick-btn" data-kick="${uid}">expulsar</button>` : "";
+    return `<div class="set-member"><span class="sm-name">${escapeHtml(name)}${badge}</span>${kick}</div>`;
+  }).join("");
+}
+async function saveSettings() {
+  const g = state.g;
+  const name = $("set-name").value.trim();
+  const start = $("set-start").value, end = $("set-end").value;
+  if (!name) { showToast("Pon un nombre"); return; }
+  if (!start || !end || start > end) { showToast("Revisa los meses (desde ≤ hasta)"); return; }
+  try {
+    await db.collection("groups").doc(g.id).update({ name, startMonth: start, endMonth: end });
+    await db.collection("groupInvites").doc(g.id).set({ name }, { merge: true });
+    hide($("settings-modal"));
+    showToast("✅ Cambios guardados");
+  } catch (e) { console.error(e); showToast("⚠️ " + e.message); }
+}
+async function expelMember(uid) {
+  const gid = state.g.id;
+  try {
+    await db.collection("groups").doc(gid).update({
+      memberUids: firebase.firestore.FieldValue.arrayRemove(uid),
+    });
+    db.collection("groups").doc(gid).collection("members").doc(uid).delete().catch(() => {});
+    showToast("Miembro expulsado");
+  } catch (e) { console.error(e); showToast("⚠️ " + e.message); }
+}
+async function leaveGroup_() {
+  const gid = state.g.id, uid = auth.currentUser.uid;
+  hide($("settings-modal"));
+  location.hash = "#/";
+  try {
+    await db.collection("groups").doc(gid).update({
+      memberUids: firebase.firestore.FieldValue.arrayRemove(uid),
+    });
+    await db.collection("groups").doc(gid).collection("members").doc(uid).delete();
+  } catch (e) { console.error(e); showToast("⚠️ " + e.message); }
+}
+function deleteGroup_() {
+  const gid = state.g.id;
+  askConfirm("Borrar grupo", "Se borrará el grupo para todos. No se puede deshacer.", "Sí, borrar", async () => {
+    hide($("settings-modal"));
+    location.hash = "#/";
+    try {
+      await db.collection("groupInvites").doc(gid).delete();
+      await db.collection("groups").doc(gid).delete();
+    } catch (e) { console.error(e); showToast("⚠️ " + e.message); }
+  });
 }
 
 // ---- Flujo de email link (Fase 1) ---------------------------
@@ -569,6 +648,22 @@ function wireEvents() {
   // Unirse
   $("join-accept").addEventListener("click", joinGroup);
   $("join-cancel").addEventListener("click", () => { hide($("join-modal")); location.hash = "#/"; });
+
+  // Ajustes del grupo
+  $("settings-btn").addEventListener("click", openSettings);
+  $("settings-close").addEventListener("click", () => hide($("settings-modal")));
+  $("set-save").addEventListener("click", saveSettings);
+  $("set-members").addEventListener("click", e => {
+    const btn = e.target.closest("[data-kick]");
+    if (!btn) return;
+    const uid = btn.dataset.kick;
+    const m = state.g.members[uid] || {};
+    askConfirm("Expulsar", `¿Quitar a ${m.displayName || "esta persona"} del grupo?`, "Sí, expulsar", () => expelMember(uid));
+  });
+  $("set-leave").addEventListener("click", () => {
+    askConfirm("Salir del grupo", "Dejarás de ver este grupo. Podrás volver con el enlace de invitación.", "Sí, salir", leaveGroup_);
+  });
+  $("set-delete").addEventListener("click", deleteGroup_);
 }
 
 // ---- Arranque -----------------------------------------------

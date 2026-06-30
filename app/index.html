@@ -76,6 +76,7 @@
         <div id="group-sub" class="group-sub"></div>
       </div>
       <button id="share-btn" class="icon-btn" aria-label="Invitar">🔗</button>
+      <button id="settings-btn" class="icon-btn" aria-label="Ajustes">⚙️</button>
     </div>
 
     <nav class="tabs">
@@ -154,6 +155,36 @@
       <input id="share-link" type="text" readonly />
       <button id="share-copy" class="btn-primary">📋 Copiar enlace</button>
       <button id="share-native" class="btn-secondary">Compartir…</button>
+    </div>
+  </div>
+
+  <!-- Modal ajustes del grupo -->
+  <div id="settings-modal" class="modal hidden">
+    <div class="modal-box">
+      <button id="settings-close" class="modal-close" type="button" aria-label="Cerrar">✕</button>
+      <h2>⚙️ Ajustes del grupo</h2>
+
+      <div id="settings-owner">
+        <label class="field-label" for="set-name">Nombre del grupo</label>
+        <input id="set-name" type="text" maxlength="40" />
+        <div class="month-row">
+          <div>
+            <label class="field-label" for="set-start">Desde</label>
+            <input id="set-start" type="month" />
+          </div>
+          <div>
+            <label class="field-label" for="set-end">Hasta</label>
+            <input id="set-end" type="month" />
+          </div>
+        </div>
+        <button id="set-save" class="btn-primary">Guardar cambios</button>
+      </div>
+
+      <label class="field-label set-members-label">Miembros (<span id="set-count">0</span>)</label>
+      <div id="set-members" class="set-members"></div>
+
+      <button id="set-leave" class="btn-secondary danger-btn">↩️ Salir del grupo</button>
+      <button id="set-delete" class="btn-secondary danger-btn hidden">🗑️ Borrar grupo</button>
     </div>
   </div>
 
