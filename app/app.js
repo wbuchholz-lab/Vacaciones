@@ -354,7 +354,8 @@ function setBaseline(b) {
   const g = state.g;
   if (g.baseline === b) return;
   g.baseline = b;
-  Object.keys(g.myDays).forEach(d => { if (g.myDays[d] === b) delete g.myDays[d]; });
+  // No tocamos tus marcas: solo cambian los días que NO habías marcado.
+  // (Tus días explícitos Libre/Ocupado/Inseguro se conservan al cambiar la base.)
   renderGroup();
   scheduleSaveMember();
 }
