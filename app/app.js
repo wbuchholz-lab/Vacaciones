@@ -52,6 +52,16 @@ function showToast(msg) {
   toastTimer = setTimeout(() => hide(t), 2800);
 }
 
+// Aviso de confirmación reutilizable
+let confirmCb = null;
+function askConfirm(title, text, okLabel, cb) {
+  $("confirm-title").textContent = title;
+  $("confirm-text").textContent = text;
+  $("confirm-ok").textContent = okLabel || "Sí";
+  confirmCb = cb;
+  show($("confirm-modal"));
+}
+
 // fechas
 const dateStr = (y, m, d) => `${y}-${pad(m)}-${pad(d)}`;
 const daysInMonth = (y, m) => new Date(y, m, 0).getDate();
@@ -505,10 +515,30 @@ function wireEvents() {
     renderGroup();
   }));
 
-  // Grupo: base Libre/Ocupado
+  // Grupo: base Libre/Ocupado (con aviso antes de pintar los días sin marcar)
   document.querySelectorAll("[data-base]").forEach(b => b.addEventListener("click", () => {
-    if (state.g) setBaseline(b.dataset.base);
+    if (!state.g) return;
+    const target = b.dataset.base;
+    if (state.g.baseline === target) return;
+    const word = target === "ocupado" ? "ocupados 🔴" : "libres 🟢";
+    askConfirm(
+      "Cambiar tu disponibilidad por defecto",
+      `Se marcarán como ${word} todos los días que NO hayas tocado. Los días que ya marcaste se conservan.`,
+      "Sí, cambiar",
+      () => setBaseline(target)
+    );
   }));
+
+  // Botones del aviso de confirmación
+  $("confirm-ok").addEventListener("click", () => {
+    hide($("confirm-modal"));
+    const cb = confirmCb; confirmCb = null;
+    if (cb) cb();
+  });
+  $("confirm-cancel").addEventListener("click", () => {
+    hide($("confirm-modal"));
+    confirmCb = null;
+  });
 
   // Grupo: tocar días / semanas
   $("calendar").addEventListener("click", e => {

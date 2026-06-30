@@ -96,7 +96,7 @@
       <span class="leg"><i class="sw libre"></i>Libre</span>
       <span class="leg"><i class="sw ocupado"></i>Ocupado</span>
       <span class="leg"><i class="sw inseguro"></i>Inseguro</span>
-      <p class="hint">Toca un día para cambiarlo. Marca solo lo que se sale de tu "por defecto". <b>sem</b> = semana entera.</p>
+      <p class="hint">Toca un día para cambiarlo (Libre→Ocupado→Inseguro). El interruptor de arriba pinta de golpe los días <b>sin marcar</b>. <b>sem</b> = semana entera.</p>
     </div>
     <div id="legend-summary" class="legend hidden">
       <span class="leg"><i class="sw heat-good"></i>Todos libres</span>
@@ -154,6 +154,16 @@
       <input id="share-link" type="text" readonly />
       <button id="share-copy" class="btn-primary">📋 Copiar enlace</button>
       <button id="share-native" class="btn-secondary">Compartir…</button>
+    </div>
+  </div>
+
+  <!-- Modal de confirmación genérico -->
+  <div id="confirm-modal" class="modal hidden">
+    <div class="modal-box">
+      <h2 id="confirm-title">¿Seguro?</h2>
+      <p id="confirm-text" class="muted"></p>
+      <button id="confirm-ok" class="btn-primary">Sí</button>
+      <button id="confirm-cancel" class="btn-secondary">Cancelar</button>
     </div>
   </div>
 
