@@ -2,7 +2,7 @@
 // Estrategia: "network-first" para contenido propio (así siempre coges la última
 // versión cuando hay conexión), con la caché como respaldo si estás sin conexión.
 
-const CACHE = "vacaciones-v1";
+const CACHE = "free-v2";
 const ASSETS = [
   "./",
   "./index.html",

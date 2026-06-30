@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#4f46e5" />
-  <title>Vacaciones en grupo</title>
+  <title>Free?</title>
   <link rel="stylesheet" href="styles.css" />
   <!-- PWA -->
   <link rel="manifest" href="manifest.webmanifest" />
@@ -13,7 +13,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="Vacaciones" />
+  <meta name="apple-mobile-web-app-title" content="Free?" />
 </head>
 <body>
 
@@ -22,7 +22,7 @@
     <div class="spinner"></div>
   </div>
 
-  <div id="config-warning" class="config-warning hidden">
+  <div id="config-warning" class="config-warning hidden" data-i18n="configWarning">
     ⚠️ Falta configurar Firebase / activar el login. Revisa los pasos de la Fase 0.
   </div>
 
@@ -30,13 +30,15 @@
   <section id="login-view" class="center-screen hidden">
     <div class="login-card">
       <div class="login-logo">🏖️</div>
-      <h1>Vacaciones en grupo</h1>
-      <p class="login-sub">Organiza con tus grupos qué días estáis libres.</p>
-      <button id="google-btn" class="btn-google"><span class="g-icon">G</span> Entrar con Google</button>
-      <div class="divider"><span>o con tu email</span></div>
+      <h1>Free?</h1>
+      <p class="login-sub" data-i18n="tagline">Organiza con tus grupos qué días estáis libres.</p>
+      <button id="google-btn" class="btn-google">
+        <span class="g-icon">G</span> <span data-i18n="googleBtn">Entrar con Google</span>
+      </button>
+      <div class="divider"><span data-i18n="orEmail">o con tu email</span></div>
       <div class="email-box">
-        <input id="email-input" type="email" inputmode="email" placeholder="tu@email.com" autocomplete="email" />
-        <button id="email-btn" class="btn-primary">Enviarme un enlace</button>
+        <input id="email-input" type="email" inputmode="email" placeholder="tu@email.com" autocomplete="email" data-i18n-ph="emailPh" />
+        <button id="email-btn" class="btn-primary" data-i18n="emailSend">Enviarme un enlace</button>
       </div>
       <p id="email-msg" class="email-msg"></p>
     </div>
@@ -44,9 +46,9 @@
 
   <!-- ===================== TOPBAR ===================== -->
   <header id="topbar" class="topbar hidden">
-    <span class="topbar-title">🏖️ Vacaciones</span>
+    <span class="topbar-title">🗓️ Free?</span>
     <div class="user-menu">
-      <button id="user-btn" class="user-btn" aria-label="Tu cuenta">
+      <button id="user-btn" class="user-btn" aria-label="Cuenta">
         <span id="user-avatar" class="avatar">?</span>
       </button>
       <div id="user-dropdown" class="dropdown hidden">
@@ -54,10 +56,11 @@
           <div id="dd-name" class="dd-name"></div>
           <div id="dd-email" class="dd-email"></div>
         </div>
-        <button id="profile-btn" class="dropdown-item">👤 Editar perfil</button>
-        <button id="newgroup-btn" class="dropdown-item">➕ Crear grupo</button>
-        <button id="install-btn" class="dropdown-item">📲 Instalar app</button>
-        <button id="signout-btn" class="dropdown-item danger">↩️ Cerrar sesión</button>
+        <button id="profile-btn" class="dropdown-item" data-i18n="editProfile">👤 Editar perfil</button>
+        <button id="newgroup-btn" class="dropdown-item" data-i18n="newGroup">➕ Crear grupo</button>
+        <button id="install-btn" class="dropdown-item" data-i18n="install">📲 Instalar app</button>
+        <button id="lang-btn" class="dropdown-item">🌐 English</button>
+        <button id="signout-btn" class="dropdown-item danger" data-i18n="signout">↩️ Cerrar sesión</button>
       </div>
     </div>
   </header>
@@ -65,14 +68,14 @@
   <!-- ===================== HOME ===================== -->
   <main id="home-view" class="home hidden">
     <div class="home-head">
-      <h2>Tus grupos</h2>
-      <button id="create-btn" class="btn-primary btn-sm">➕ Crear grupo</button>
+      <h2 data-i18n="yourGroups">Tus grupos</h2>
+      <button id="create-btn" class="btn-primary btn-sm" data-i18n="newGroup">➕ Crear grupo</button>
     </div>
     <div id="groups-list" class="groups-list"></div>
     <div id="groups-empty" class="empty-state hidden">
       <div class="empty-emoji">📭</div>
-      <p>Aún no tienes grupos.</p>
-      <p class="muted">Crea uno y comparte el enlace con tu gente.</p>
+      <p data-i18n="emptyTitle">Aún no tienes grupos.</p>
+      <p class="muted" data-i18n="emptySub">Crea uno y comparte el enlace con tu gente.</p>
     </div>
   </main>
 
@@ -89,29 +92,28 @@
     </div>
 
     <nav class="tabs">
-      <button class="tab active" data-gtab="mine">📅 Mi calendario</button>
-      <button class="tab" data-gtab="summary">👥 Resumen</button>
+      <button class="tab active" data-gtab="mine" data-i18n="tabMine">📅 Mi calendario</button>
+      <button class="tab" data-gtab="summary" data-i18n="tabSummary">👥 Resumen</button>
     </nav>
 
-    <!-- Interruptor de base (solo en "Mi calendario") -->
     <div id="baseline-bar" class="baseline-bar">
-      <span class="baseline-label">Por defecto estoy:</span>
+      <span class="baseline-label" data-i18n="defaultLabel">Por defecto estoy:</span>
       <div class="baseline-toggle">
-        <button class="base-opt" data-base="libre">🟢 Libre</button>
-        <button class="base-opt" data-base="ocupado">🔴 Ocupado</button>
+        <button class="base-opt" data-base="libre" data-i18n="baseFree">🟢 Libre</button>
+        <button class="base-opt" data-base="ocupado" data-i18n="baseBusy">🔴 Ocupado</button>
       </div>
     </div>
 
     <div id="legend-mine" class="legend">
-      <span class="leg"><i class="sw libre"></i>Libre</span>
-      <span class="leg"><i class="sw ocupado"></i>Ocupado</span>
-      <span class="leg"><i class="sw inseguro"></i>Inseguro</span>
-      <p class="hint">Toca un día para cambiarlo (Libre→Ocupado→Inseguro). El interruptor de arriba pinta de golpe los días <b>sin marcar</b>. <b>sem</b> = semana entera.</p>
+      <span class="leg"><i class="sw libre"></i><span data-i18n="legFree">Libre</span></span>
+      <span class="leg"><i class="sw ocupado"></i><span data-i18n="legBusy">Ocupado</span></span>
+      <span class="leg"><i class="sw inseguro"></i><span data-i18n="legUnsure">Inseguro</span></span>
+      <p class="hint" data-i18n="legMineHint">Toca un día para cambiarlo (Libre→Ocupado→Inseguro). El interruptor de arriba pinta de golpe los días sin marcar. sem = semana entera.</p>
     </div>
     <div id="legend-summary" class="legend hidden">
-      <span class="leg"><i class="sw heat-good"></i>Todos libres</span>
-      <span class="leg"><i class="sw heat-bad"></i>Pocos libres</span>
-      <p class="hint">El número es cuánta gente está libre ese día. Toca un día para ver el detalle.</p>
+      <span class="leg"><i class="sw heat-good"></i><span data-i18n="legAllFree">Todos libres</span></span>
+      <span class="leg"><i class="sw heat-bad"></i><span data-i18n="legFewFree">Pocos libres</span></span>
+      <p class="hint" data-i18n="legSummaryHint">El número es cuánta gente está libre ese día. Toca un día para ver el detalle.</p>
     </div>
 
     <div id="calendar" class="calendar"></div>
@@ -126,21 +128,21 @@
   <div id="create-modal" class="modal hidden">
     <div class="modal-box">
       <button id="create-close" class="modal-close" type="button" aria-label="Cerrar">✕</button>
-      <h2>➕ Nuevo grupo</h2>
-      <label class="field-label" for="cg-name">Nombre del grupo</label>
-      <input id="cg-name" type="text" maxlength="40" placeholder="Ej. Escapada de verano" />
+      <h2 data-i18n="newGroupTitle">➕ Nuevo grupo</h2>
+      <label class="field-label" for="cg-name" data-i18n="groupNameLabel">Nombre del grupo</label>
+      <input id="cg-name" type="text" maxlength="40" placeholder="Ej. Escapada de verano" data-i18n-ph="groupNamePh" />
       <div class="month-row">
         <div>
-          <label class="field-label" for="cg-start">Desde</label>
+          <label class="field-label" for="cg-start" data-i18n="from">Desde</label>
           <input id="cg-start" type="month" />
         </div>
         <div>
-          <label class="field-label" for="cg-end">Hasta</label>
+          <label class="field-label" for="cg-end" data-i18n="to">Hasta</label>
           <input id="cg-end" type="month" />
         </div>
       </div>
       <p id="cg-msg" class="email-msg"></p>
-      <button id="cg-create" class="btn-primary">Crear grupo</button>
+      <button id="cg-create" class="btn-primary" data-i18n="createGroupBtn">Crear grupo</button>
     </div>
   </div>
 
@@ -148,22 +150,22 @@
   <div id="profile-modal" class="modal hidden">
     <div class="modal-box">
       <button id="profile-close" class="modal-close" type="button" aria-label="Cerrar">✕</button>
-      <h2>👤 Tu perfil</h2>
-      <label class="field-label" for="profile-name">Nombre que verá tu grupo</label>
-      <input id="profile-name" type="text" maxlength="24" placeholder="Tu nombre" />
-      <button id="profile-save" class="btn-primary">Guardar</button>
+      <h2 data-i18n="profileTitle">👤 Tu perfil</h2>
+      <label class="field-label" for="profile-name" data-i18n="profileNameLabel">Nombre que verá tu grupo</label>
+      <input id="profile-name" type="text" maxlength="24" placeholder="Tu nombre" data-i18n-ph="yourNamePh" />
+      <button id="profile-save" class="btn-primary" data-i18n="save">Guardar</button>
     </div>
   </div>
 
-  <!-- Modal compartir (invitar) -->
+  <!-- Modal compartir -->
   <div id="share-modal" class="modal hidden">
     <div class="modal-box">
       <button id="share-close" class="modal-close" type="button" aria-label="Cerrar">✕</button>
-      <h2>🔗 Invitar al grupo</h2>
-      <p class="muted" id="share-text">Comparte este enlace con tu gente para que se unan:</p>
+      <h2 data-i18n="shareTitle">🔗 Invitar al grupo</h2>
+      <p class="muted" data-i18n="shareText">Comparte este enlace con tu gente para que se unan:</p>
       <input id="share-link" type="text" readonly />
-      <button id="share-copy" class="btn-primary">📋 Copiar enlace</button>
-      <button id="share-native" class="btn-secondary">Compartir…</button>
+      <button id="share-copy" class="btn-primary" data-i18n="copyLink">📋 Copiar enlace</button>
+      <button id="share-native" class="btn-secondary" data-i18n="shareDots">Compartir…</button>
     </div>
   </div>
 
@@ -171,29 +173,26 @@
   <div id="settings-modal" class="modal hidden">
     <div class="modal-box">
       <button id="settings-close" class="modal-close" type="button" aria-label="Cerrar">✕</button>
-      <h2>⚙️ Ajustes del grupo</h2>
-
+      <h2 data-i18n="settingsTitle">⚙️ Ajustes del grupo</h2>
       <div id="settings-owner">
-        <label class="field-label" for="set-name">Nombre del grupo</label>
+        <label class="field-label" for="set-name" data-i18n="groupNameLabel">Nombre del grupo</label>
         <input id="set-name" type="text" maxlength="40" />
         <div class="month-row">
           <div>
-            <label class="field-label" for="set-start">Desde</label>
+            <label class="field-label" for="set-start" data-i18n="from">Desde</label>
             <input id="set-start" type="month" />
           </div>
           <div>
-            <label class="field-label" for="set-end">Hasta</label>
+            <label class="field-label" for="set-end" data-i18n="to">Hasta</label>
             <input id="set-end" type="month" />
           </div>
         </div>
-        <button id="set-save" class="btn-primary">Guardar cambios</button>
+        <button id="set-save" class="btn-primary" data-i18n="saveChanges">Guardar cambios</button>
       </div>
-
-      <label class="field-label set-members-label">Miembros (<span id="set-count">0</span>)</label>
+      <label class="field-label set-members-label"><span data-i18n="members">Miembros</span> (<span id="set-count">0</span>)</label>
       <div id="set-members" class="set-members"></div>
-
-      <button id="set-leave" class="btn-secondary danger-btn">↩️ Salir del grupo</button>
-      <button id="set-delete" class="btn-secondary danger-btn hidden">🗑️ Borrar grupo</button>
+      <button id="set-leave" class="btn-secondary danger-btn" data-i18n="leaveGroupBtn">↩️ Salir del grupo</button>
+      <button id="set-delete" class="btn-secondary danger-btn hidden" data-i18n="deleteGroupBtn">🗑️ Borrar grupo</button>
     </div>
   </div>
 
@@ -203,17 +202,17 @@
       <h2 id="confirm-title">¿Seguro?</h2>
       <p id="confirm-text" class="muted"></p>
       <button id="confirm-ok" class="btn-primary">Sí</button>
-      <button id="confirm-cancel" class="btn-secondary">Cancelar</button>
+      <button id="confirm-cancel" class="btn-secondary" data-i18n="cancel">Cancelar</button>
     </div>
   </div>
 
   <!-- Modal unirse al grupo -->
   <div id="join-modal" class="modal hidden">
     <div class="modal-box">
-      <h2>👋 Te han invitado</h2>
-      <p id="join-text" class="muted">Cargando…</p>
-      <button id="join-accept" class="btn-primary">Unirme al grupo</button>
-      <button id="join-cancel" class="btn-secondary">Cancelar</button>
+      <h2 data-i18n="invitedTitle">👋 Te han invitado</h2>
+      <p id="join-text" class="muted"></p>
+      <button id="join-accept" class="btn-primary" data-i18n="joinBtn">Unirme al grupo</button>
+      <button id="join-cancel" class="btn-secondary" data-i18n="cancel">Cancelar</button>
     </div>
   </div>
 

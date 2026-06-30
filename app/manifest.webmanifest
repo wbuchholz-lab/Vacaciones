@@ -1,7 +1,7 @@
 {
-  "name": "Vacaciones en grupo",
-  "short_name": "Vacaciones",
-  "description": "Organiza con tus grupos qué días estáis libres.",
+  "name": "Free?",
+  "short_name": "Free?",
+  "description": "Find when your group is free. / Encuentra cuándo coincidís libres.",
   "lang": "es",
   "dir": "ltr",
   "start_url": "./",

@@ -1,7 +1,7 @@
 // =============================================================
-//  Vacaciones en grupo — Fase 2: grupos + calendario por grupo
-//  (login Google/email de la Fase 1 + grupos, base Libre/Ocupado,
-//   resumen del grupo e invitación por enlace)
+//  Free? — app de coordinación de días libres en grupo
+//  (login Google/email · grupos · base Libre/Ocupado · resumen
+//   · invitar por enlace · ajustes · PWA · ES/EN)
 // =============================================================
 
 // ---- Inicializar Firebase -----------------------------------
@@ -18,20 +18,244 @@ try {
 
 const $ = id => document.getElementById(id);
 
+// ---- Idioma (i18n) ------------------------------------------
+let lang = localStorage.getItem("lang");
+if (!lang) lang = (navigator.language || "es").toLowerCase().indexOf("es") === 0 ? "es" : "en";
+
+const I18N = {
+  es: {
+    configWarning: "⚠️ Falta configurar Firebase / activar el login. Revisa los pasos de la Fase 0.",
+    tagline: "Organiza con tus grupos qué días estáis libres.",
+    googleBtn: "Entrar con Google",
+    orEmail: "o con tu email",
+    emailPh: "tu@email.com",
+    emailSend: "Enviarme un enlace",
+    editProfile: "👤 Editar perfil",
+    newGroup: "➕ Crear grupo",
+    install: "📲 Instalar app",
+    signout: "↩️ Cerrar sesión",
+    yourGroups: "Tus grupos",
+    emptyTitle: "Aún no tienes grupos.",
+    emptySub: "Crea uno y comparte el enlace con tu gente.",
+    tabMine: "📅 Mi calendario",
+    tabSummary: "👥 Resumen",
+    defaultLabel: "Por defecto estoy:",
+    baseFree: "🟢 Libre",
+    baseBusy: "🔴 Ocupado",
+    legFree: "Libre",
+    legBusy: "Ocupado",
+    legUnsure: "Inseguro",
+    legMineHint: "Toca un día para cambiarlo (Libre→Ocupado→Inseguro). El interruptor de arriba pinta de golpe los días sin marcar. sem = semana entera.",
+    legAllFree: "Todos libres",
+    legFewFree: "Pocos libres",
+    legSummaryHint: "El número es cuánta gente está libre ese día. Toca un día para ver el detalle.",
+    week: "sem",
+    newGroupTitle: "➕ Nuevo grupo",
+    groupNameLabel: "Nombre del grupo",
+    groupNamePh: "Ej. Escapada de verano",
+    from: "Desde",
+    to: "Hasta",
+    createGroupBtn: "Crear grupo",
+    profileTitle: "👤 Tu perfil",
+    profileNameLabel: "Nombre que verá tu grupo",
+    yourNamePh: "Tu nombre",
+    save: "Guardar",
+    shareTitle: "🔗 Invitar al grupo",
+    shareText: "Comparte este enlace con tu gente para que se unan:",
+    copyLink: "📋 Copiar enlace",
+    shareDots: "Compartir…",
+    settingsTitle: "⚙️ Ajustes del grupo",
+    saveChanges: "Guardar cambios",
+    members: "Miembros",
+    leaveGroupBtn: "↩️ Salir del grupo",
+    deleteGroupBtn: "🗑️ Borrar grupo",
+    invitedTitle: "👋 Te han invitado",
+    joinBtn: "Unirme al grupo",
+    cancel: "Cancelar",
+    person: "persona", people: "personas",
+    group: "Grupo",
+    thisGroup: "este grupo",
+    nobody: "nadie",
+    owner: "dueño",
+    expel: "expulsar",
+    somebody: "esta persona",
+    detailFree: "Libres", detailBusy: "Ocupados", detailUnsure: "Inseguros",
+    askName: "¿Cómo te llamas? (lo verá tu grupo)",
+    confirmEmail: "Confirma tu email para completar el acceso:",
+    profileUpdated: "✅ Perfil actualizado",
+    saveErr: "⚠️ No se pudo guardar",
+    groupsErr: "⚠️ Error cargando grupos",
+    profileErr: "⚠️ Error cargando tu perfil",
+    noGoogle: "⚠️ No se pudo entrar con Google",
+    emailSent: "✅ Enlace enviado a {email}. Ábrelo en este mismo móvil.",
+    emailInvalid: "⚠️ El enlace no es válido o ha caducado.",
+    linkCopied: "📋 Enlace copiado",
+    selectCopy: "Selecciona y copia el enlace",
+    noShare: "Tu navegador no permite compartir directo; usa Copiar",
+    shareSubject: "Únete a mi grupo en Free?",
+    groupNotFound: "Grupo no encontrado",
+    noOpen: "⚠️ No se pudo abrir el grupo",
+    noJoin: "⚠️ No se pudo unir: {msg}",
+    changesSaved: "✅ Cambios guardados",
+    putName: "Pon un nombre",
+    putGroupName: "Pon un nombre al grupo.",
+    checkMonths: "Revisa los meses (desde ≤ hasta).",
+    memberExpelled: "Miembro expulsado",
+    installed: "✅ Ya tienes la app instalada",
+    iosInstall: 'En Safari: Compartir ⬆️ → "Añadir a pantalla de inicio"',
+    otherInstall: 'Menú del navegador (⋮) → "Instalar app" / "Añadir a pantalla de inicio"',
+    joinPrompt: 'Te han invitado a "{name}". ¿Quieres unirte?',
+    baseTitle: "Cambiar tu disponibilidad por defecto",
+    baseTextBusy: "Se marcarán como ocupados 🔴 todos los días que NO hayas tocado. Los días que ya marcaste se conservan.",
+    baseTextFree: "Se marcarán como libres 🟢 todos los días que NO hayas tocado. Los días que ya marcaste se conservan.",
+    baseOk: "Sí, cambiar",
+    expelTitle: "Expulsar",
+    expelText: "¿Quitar a {name} del grupo?",
+    expelOk: "Sí, expulsar",
+    leaveTitle: "Salir del grupo",
+    leaveText: "Dejarás de ver este grupo. Podrás volver con el enlace de invitación.",
+    leaveOk: "Sí, salir",
+    deleteTitle: "Borrar grupo",
+    deleteText: "Se borrará el grupo para todos. No se puede deshacer.",
+    deleteOk: "Sí, borrar",
+    months: ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"],
+    dow: ["L","M","X","J","V","S","D"],
+    dowFull: ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"],
+  },
+  en: {
+    configWarning: "⚠️ Firebase / login not set up.",
+    tagline: "Plan with your groups which days you're free.",
+    googleBtn: "Sign in with Google",
+    orEmail: "or with your email",
+    emailPh: "you@email.com",
+    emailSend: "Send me a link",
+    editProfile: "👤 Edit profile",
+    newGroup: "➕ Create group",
+    install: "📲 Install app",
+    signout: "↩️ Sign out",
+    yourGroups: "Your groups",
+    emptyTitle: "You don't have any groups yet.",
+    emptySub: "Create one and share the link with your people.",
+    tabMine: "📅 My calendar",
+    tabSummary: "👥 Summary",
+    defaultLabel: "By default I'm:",
+    baseFree: "🟢 Free",
+    baseBusy: "🔴 Busy",
+    legFree: "Free",
+    legBusy: "Busy",
+    legUnsure: "Not sure",
+    legMineHint: "Tap a day to change it (Free→Busy→Not sure). The switch above fills all untouched days at once. wk = whole week.",
+    legAllFree: "Everyone free",
+    legFewFree: "Few free",
+    legSummaryHint: "The number is how many people are free that day. Tap a day for details.",
+    week: "wk",
+    newGroupTitle: "➕ New group",
+    groupNameLabel: "Group name",
+    groupNamePh: "E.g. Summer trip",
+    from: "From",
+    to: "To",
+    createGroupBtn: "Create group",
+    profileTitle: "👤 Your profile",
+    profileNameLabel: "Name your group will see",
+    yourNamePh: "Your name",
+    save: "Save",
+    shareTitle: "🔗 Invite to the group",
+    shareText: "Share this link so your people can join:",
+    copyLink: "📋 Copy link",
+    shareDots: "Share…",
+    settingsTitle: "⚙️ Group settings",
+    saveChanges: "Save changes",
+    members: "Members",
+    leaveGroupBtn: "↩️ Leave group",
+    deleteGroupBtn: "🗑️ Delete group",
+    invitedTitle: "👋 You're invited",
+    joinBtn: "Join the group",
+    cancel: "Cancel",
+    person: "person", people: "people",
+    group: "Group",
+    thisGroup: "this group",
+    nobody: "nobody",
+    owner: "owner",
+    expel: "remove",
+    somebody: "this person",
+    detailFree: "Free", detailBusy: "Busy", detailUnsure: "Not sure",
+    askName: "What's your name? (your group will see it)",
+    confirmEmail: "Confirm your email to finish signing in:",
+    profileUpdated: "✅ Profile updated",
+    saveErr: "⚠️ Couldn't save",
+    groupsErr: "⚠️ Error loading groups",
+    profileErr: "⚠️ Error loading your profile",
+    noGoogle: "⚠️ Couldn't sign in with Google",
+    emailSent: "✅ Link sent to {email}. Open it on this same phone.",
+    emailInvalid: "⚠️ The link is invalid or has expired.",
+    linkCopied: "📋 Link copied",
+    selectCopy: "Select and copy the link",
+    noShare: "Your browser can't share directly; use Copy",
+    shareSubject: "Join my group on Free?",
+    groupNotFound: "Group not found",
+    noOpen: "⚠️ Couldn't open the group",
+    noJoin: "⚠️ Couldn't join: {msg}",
+    changesSaved: "✅ Changes saved",
+    putName: "Enter a name",
+    putGroupName: "Enter a group name.",
+    checkMonths: "Check the months (from ≤ to).",
+    memberExpelled: "Member removed",
+    installed: "✅ App already installed",
+    iosInstall: 'In Safari: Share ⬆️ → "Add to Home Screen"',
+    otherInstall: 'Browser menu (⋮) → "Install app" / "Add to Home Screen"',
+    joinPrompt: 'You\'ve been invited to "{name}". Do you want to join?',
+    baseTitle: "Change your default availability",
+    baseTextBusy: "All days you HAVEN'T touched will be marked busy 🔴. Days you already marked are kept.",
+    baseTextFree: "All days you HAVEN'T touched will be marked free 🟢. Days you already marked are kept.",
+    baseOk: "Yes, change",
+    expelTitle: "Remove",
+    expelText: "Remove {name} from the group?",
+    expelOk: "Yes, remove",
+    leaveTitle: "Leave group",
+    leaveText: "You'll stop seeing this group. You can return with the invite link.",
+    leaveOk: "Yes, leave",
+    deleteTitle: "Delete group",
+    deleteText: "The group will be deleted for everyone. This can't be undone.",
+    deleteOk: "Yes, delete",
+    months: ["January","February","March","April","May","June","July","August","September","October","November","December"],
+    dow: ["M","T","W","T","F","S","S"],
+    dowFull: ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
+  },
+};
+
+function t(key, params) {
+  let s = I18N[lang] && I18N[lang][key];
+  if (s == null) s = I18N.es[key];
+  if (s == null) s = key;
+  if (params) Object.keys(params).forEach(k => { s = s.split("{" + k + "}").join(params[k]); });
+  return s;
+}
+function peopleLabel(n) { return n + " " + (n === 1 ? t("person") : t("people")); }
+
+function applyI18n() {
+  document.documentElement.lang = lang;
+  document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll("[data-i18n-ph]").forEach(el => { el.setAttribute("placeholder", t(el.dataset.i18nPh)); });
+  $("lang-btn").textContent = lang === "es" ? "🌐 English" : "🌐 Español";
+  if (state.view === "home") renderGroups();
+  if (state.view === "group" && state.g) renderGroup();
+}
+function setLang(l) {
+  lang = l;
+  localStorage.setItem("lang", l);
+  applyI18n();
+}
+
 // ---- Constantes ---------------------------------------------
 const NEXT = { libre: "ocupado", ocupado: "inseguro", inseguro: "libre" };
-const MONTH_NAMES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio",
-  "Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-const DOW = ["L", "M", "X", "J", "V", "S", "D"];
-const DOW_FULL = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
 
 // ---- Estado -------------------------------------------------
 const state = {
-  profile: null,        // { displayName, email, ... }
+  profile: null,
   view: "login",
   groupsUnsub: null,
-  groups: [],           // grupos a los que pertenezco
-  g: null,              // contexto del grupo abierto
+  groups: [],
+  g: null,
 };
 
 // ---- Utilidades ---------------------------------------------
@@ -45,11 +269,11 @@ function escapeHtml(s) {
 }
 let toastTimer = null;
 function showToast(msg) {
-  const t = $("toast");
-  t.textContent = msg;
-  show(t);
+  const el = $("toast");
+  el.textContent = msg;
+  show(el);
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => hide(t), 2800);
+  toastTimer = setTimeout(() => hide(el), 2800);
 }
 
 // Aviso de confirmación reutilizable
@@ -57,7 +281,7 @@ let confirmCb = null;
 function askConfirm(title, text, okLabel, cb) {
   $("confirm-title").textContent = title;
   $("confirm-text").textContent = text;
-  $("confirm-ok").textContent = okLabel || "Sí";
+  $("confirm-ok").textContent = okLabel || t("save");
   confirmCb = cb;
   show($("confirm-modal"));
 }
@@ -65,31 +289,31 @@ function askConfirm(title, text, okLabel, cb) {
 // ---- PWA: instalación --------------------------------------
 let deferredPrompt = null;
 window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferredPrompt = e; });
-
 function isStandalone() {
   return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
 }
 async function handleInstall() {
   $("user-dropdown").classList.add("hidden");
-  if (isStandalone()) { showToast("✅ Ya tienes la app instalada"); return; }
+  if (isStandalone()) { showToast(t("installed")); return; }
   if (deferredPrompt) {
     deferredPrompt.prompt();
     await deferredPrompt.userChoice;
     deferredPrompt = null;
     return;
   }
-  const ua = navigator.userAgent;
-  if (/iphone|ipad|ipod/i.test(ua)) showToast('En Safari: Compartir ⬆️ → "Añadir a pantalla de inicio"');
-  else showToast('Menú del navegador (⋮) → "Instalar app" / "Añadir a pantalla de inicio"');
+  if (/iphone|ipad|ipod/i.test(navigator.userAgent)) showToast(t("iosInstall"));
+  else showToast(t("otherInstall"));
 }
 
-// fechas
+// ---- Fechas -------------------------------------------------
 const dateStr = (y, m, d) => `${y}-${pad(m)}-${pad(d)}`;
 const daysInMonth = (y, m) => new Date(y, m, 0).getDate();
 const firstDowMon = (y, m) => (new Date(y, m - 1, 1).getDay() + 6) % 7;
 function prettyDate(dt) {
   const [y, m, d] = dt.split("-").map(Number);
-  return `${DOW_FULL[new Date(y, m - 1, d).getDay()]} ${d} de ${MONTH_NAMES[m - 1].toLowerCase()}`;
+  const dow = new Date(y, m - 1, d).getDay();
+  if (lang === "en") return `${t("dowFull")[dow]}, ${t("months")[m - 1]} ${d}`;
+  return `${t("dowFull")[dow]} ${d} de ${t("months")[m - 1].toLowerCase()}`;
 }
 function monthList(startMonth, endMonth) {
   const [sy, sm] = startMonth.split("-").map(Number);
@@ -114,7 +338,8 @@ function buildWeeks(y, m) {
 function monthRangeLabel(s, e) {
   if (!s || !e) return "";
   const [sy, sm] = s.split("-").map(Number), [ey, em] = e.split("-").map(Number);
-  const short = m => MONTH_NAMES[m - 1].slice(0, 3).toLowerCase();
+  const M = t("months");
+  const short = m => M[m - 1].slice(0, 3);
   return sy === ey ? `${short(sm)}–${short(em)} ${sy}` : `${short(sm)} ${sy} – ${short(em)} ${ey}`;
 }
 function defaultMonths() {
@@ -143,8 +368,8 @@ async function ensureProfile(user) {
   const snap = await ref.get();
   if (snap.exists) { state.profile = snap.data(); return; }
   let name = (user.displayName || "").trim();
-  if (!name) name = (window.prompt("¿Cómo te llamas? (lo verá tu grupo)") || "").trim();
-  if (!name) name = (user.email || "Usuario").split("@")[0];
+  if (!name) name = (window.prompt(t("askName")) || "").trim();
+  if (!name) name = (user.email || "User").split("@")[0];
   state.profile = { displayName: name, email: user.email || "", photoURL: user.photoURL || "", createdAt: Date.now() };
   await ref.set(state.profile);
 }
@@ -154,10 +379,10 @@ async function saveProfileName(newName) {
   await db.collection("users").doc(auth.currentUser.uid).set({ displayName: name }, { merge: true });
   state.profile.displayName = name;
   paintUser();
-  showToast("✅ Perfil actualizado");
+  showToast(t("profileUpdated"));
 }
 function paintUser() {
-  const name = state.profile.displayName || "Usuario";
+  const name = state.profile.displayName || "User";
   $("user-avatar").textContent = initial(name);
   $("dd-name").textContent = name;
   $("dd-email").textContent = state.profile.email || "";
@@ -195,7 +420,7 @@ function subscribeGroups() {
       state.groups = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       state.groups.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
       if (state.view === "home") renderGroups();
-    }, err => { console.error(err); showToast("⚠️ Error cargando grupos"); });
+    }, err => { console.error(err); showToast(t("groupsErr")); });
 }
 function showHome() {
   cleanupGroup();
@@ -210,8 +435,8 @@ function renderGroups() {
   list.innerHTML = state.groups.map(g => {
     const n = (g.memberUids || []).length;
     return `<button class="group-card" data-gid="${g.id}">
-      <div class="gc-name">${escapeHtml(g.name || "Grupo")}</div>
-      <div class="gc-meta">👥 ${n} ${n === 1 ? "persona" : "personas"} · 📅 ${monthRangeLabel(g.startMonth, g.endMonth)}</div>
+      <div class="gc-name">${escapeHtml(g.name || t("group"))}</div>
+      <div class="gc-meta">👥 ${peopleLabel(n)} · 📅 ${monthRangeLabel(g.startMonth, g.endMonth)}</div>
     </button>`;
   }).join("");
 }
@@ -230,8 +455,8 @@ function openCreateModal() {
 async function createGroup() {
   const name = $("cg-name").value.trim();
   const start = $("cg-start").value, end = $("cg-end").value;
-  if (!name) { $("cg-msg").textContent = "Pon un nombre al grupo."; return; }
-  if (!start || !end || start > end) { $("cg-msg").textContent = "Revisa los meses (desde ≤ hasta)."; return; }
+  if (!name) { $("cg-msg").textContent = t("putGroupName"); return; }
+  if (!start || !end || start > end) { $("cg-msg").textContent = t("checkMonths"); return; }
   const uid = auth.currentUser.uid;
   const ref = db.collection("groups").doc();
   const code = Math.random().toString(36).slice(2, 8);
@@ -251,12 +476,12 @@ async function showJoin(gid) {
   setView("home");
   subscribeGroups();
   renderGroups();
-  let name = "este grupo";
+  let name = t("thisGroup");
   try {
     const s = await db.collection("groupInvites").doc(gid).get();
     if (s.exists && s.data().name) name = s.data().name;
   } catch (e) { console.error(e); }
-  $("join-text").textContent = `Te han invitado a "${name}". ¿Quieres unirte?`;
+  $("join-text").textContent = t("joinPrompt", { name });
   $("join-modal").dataset.gid = gid;
   show($("join-modal"));
 }
@@ -274,7 +499,7 @@ async function joinGroup() {
     );
     hide($("join-modal"));
     location.hash = "#/g/" + gid;
-  } catch (e) { console.error(e); showToast("⚠️ No se pudo unir: " + e.message); }
+  } catch (e) { console.error(e); showToast(t("noJoin", { msg: e.message })); }
 }
 
 // ---- Grupo: abrir y suscribir -------------------------------
@@ -287,14 +512,14 @@ function openGroup(gid) {
   $("calendar").innerHTML = '<div class="center-pad"><div class="spinner"></div></div>';
 
   g.unsubGroup = db.collection("groups").doc(gid).onSnapshot(snap => {
-    if (!snap.exists) { showToast("Grupo no encontrado"); location.hash = "#/"; return; }
+    if (!snap.exists) { showToast(t("groupNotFound")); location.hash = "#/"; return; }
     g.data = snap.data();
     if (!(g.data.memberUids || []).includes(auth.currentUser.uid)) { location.hash = "#/join/" + gid; return; }
     renderGroup();
   }, err => {
     console.error(err);
     if (err.code === "permission-denied") location.hash = "#/join/" + gid;
-    else { showToast("⚠️ No se pudo abrir el grupo"); location.hash = "#/"; }
+    else { showToast(t("noOpen")); location.hash = "#/"; }
   });
 
   g.unsubMembers = db.collection("groups").doc(gid).collection("members").onSnapshot(snap => {
@@ -334,7 +559,7 @@ async function saveMemberNow() {
       baseline: g.baseline,
       dias: g.myDays,
     }, { merge: true });
-  } catch (e) { console.error(e); showToast("⚠️ No se pudo guardar"); }
+  } catch (e) { console.error(e); showToast(t("saveErr")); }
 }
 
 // ---- Disponibilidad efectiva (base + excepciones) -----------
@@ -386,8 +611,6 @@ function setBaseline(b) {
   const g = state.g;
   if (g.baseline === b) return;
   g.baseline = b;
-  // No tocamos tus marcas: solo cambian los días que NO habías marcado.
-  // (Tus días explícitos Libre/Ocupado/Inseguro se conservan al cambiar la base.)
   renderGroup();
   scheduleSaveMember();
 }
@@ -396,9 +619,9 @@ function setBaseline(b) {
 function renderGroup() {
   const g = state.g;
   if (!g || !g.data) return;
-  $("group-name").textContent = g.data.name || "Grupo";
+  $("group-name").textContent = g.data.name || t("group");
   const n = Object.keys(g.members).length || (g.data.memberUids || []).length;
-  $("group-sub").textContent = `👥 ${n} ${n === 1 ? "persona" : "personas"} · 📅 ${monthRangeLabel(g.data.startMonth, g.data.endMonth)}`;
+  $("group-sub").textContent = `👥 ${peopleLabel(n)} · 📅 ${monthRangeLabel(g.data.startMonth, g.data.endMonth)}`;
 
   document.querySelectorAll("[data-gtab]").forEach(x => x.classList.toggle("active", x.dataset.gtab === g.tab));
   document.querySelectorAll("[data-base]").forEach(b => b.classList.toggle("active", b.dataset.base === g.baseline));
@@ -414,15 +637,15 @@ function renderGroup() {
 }
 function renderMonth(y, m, mode) {
   const weeks = buildWeeks(y, m);
-  const head = `<div class="wk-head"></div>` + DOW.map(d => `<div class="dow">${d}</div>`).join("");
+  const head = `<div class="wk-head"></div>` + t("dow").map(d => `<div class="dow">${d}</div>`).join("");
   const body = weeks.map(week => renderWeek(week, mode)).join("");
-  return `<section class="month"><h3>${MONTH_NAMES[m - 1]} ${y}</h3><div class="grid">${head}${body}</div></section>`;
+  return `<section class="month"><h3>${t("months")[m - 1]} ${y}</h3><div class="grid">${head}${body}</div></section>`;
 }
 function renderWeek(week, mode) {
   const g = state.g;
   const dates = week.filter(Boolean);
   const firstCol = mode === "mine"
-    ? `<button class="wk-btn" data-week="${dates.join(",")}">sem</button>`
+    ? `<button class="wk-btn" data-week="${dates.join(",")}">${t("week")}</button>`
     : `<div class="wk-head"></div>`;
   const cells = week.map(dt => {
     if (!dt) return `<div class="cell empty"></div>`;
@@ -450,9 +673,9 @@ function showGDetail(date) {
   });
   const row = (emoji, label, names) =>
     `<div class="detail-row"><span class="lbl">${emoji} ${label} (${names.length})</span>
-       <div class="detail-names ${names.length ? "" : "empty"}">${names.length ? names.map(escapeHtml).join(", ") : "nadie"}</div></div>`;
+       <div class="detail-names ${names.length ? "" : "empty"}">${names.length ? names.map(escapeHtml).join(", ") : t("nobody")}</div></div>`;
   $("gdetail-content").innerHTML = `<h3>${prettyDate(date)}</h3>` +
-    row("🟢", "Libres", free) + row("🔴", "Ocupados", busy) + row("🟡", "Inseguros", maybe);
+    row("🟢", t("detailFree"), free) + row("🔴", t("detailBusy"), busy) + row("🟡", t("detailUnsure"), maybe);
   show($("gdetail"));
 }
 
@@ -491,8 +714,8 @@ function renderSettingsMembers() {
     const m = g.members[uid] || {};
     const name = uid === myUid ? state.profile.displayName : (m.displayName || "—");
     const isOwner = uid === owner;
-    const badge = isOwner ? '<span class="owner-badge">dueño</span>' : "";
-    const kick = (iAmOwner && !isOwner) ? `<button class="kick-btn" data-kick="${uid}">expulsar</button>` : "";
+    const badge = isOwner ? `<span class="owner-badge">${t("owner")}</span>` : "";
+    const kick = (iAmOwner && !isOwner) ? `<button class="kick-btn" data-kick="${uid}">${t("expel")}</button>` : "";
     return `<div class="set-member"><span class="sm-name">${escapeHtml(name)}${badge}</span>${kick}</div>`;
   }).join("");
 }
@@ -500,13 +723,13 @@ async function saveSettings() {
   const g = state.g;
   const name = $("set-name").value.trim();
   const start = $("set-start").value, end = $("set-end").value;
-  if (!name) { showToast("Pon un nombre"); return; }
-  if (!start || !end || start > end) { showToast("Revisa los meses (desde ≤ hasta)"); return; }
+  if (!name) { showToast(t("putName")); return; }
+  if (!start || !end || start > end) { showToast(t("checkMonths")); return; }
   try {
     await db.collection("groups").doc(g.id).update({ name, startMonth: start, endMonth: end });
     await db.collection("groupInvites").doc(g.id).set({ name }, { merge: true });
     hide($("settings-modal"));
-    showToast("✅ Cambios guardados");
+    showToast(t("changesSaved"));
   } catch (e) { console.error(e); showToast("⚠️ " + e.message); }
 }
 async function expelMember(uid) {
@@ -516,7 +739,7 @@ async function expelMember(uid) {
       memberUids: firebase.firestore.FieldValue.arrayRemove(uid),
     });
     db.collection("groups").doc(gid).collection("members").doc(uid).delete().catch(() => {});
-    showToast("Miembro expulsado");
+    showToast(t("memberExpelled"));
   } catch (e) { console.error(e); showToast("⚠️ " + e.message); }
 }
 async function leaveGroup_() {
@@ -532,7 +755,7 @@ async function leaveGroup_() {
 }
 function deleteGroup_() {
   const gid = state.g.id;
-  askConfirm("Borrar grupo", "Se borrará el grupo para todos. No se puede deshacer.", "Sí, borrar", async () => {
+  askConfirm(t("deleteTitle"), t("deleteText"), t("deleteOk"), async () => {
     hide($("settings-modal"));
     location.hash = "#/";
     try {
@@ -542,36 +765,34 @@ function deleteGroup_() {
   });
 }
 
-// ---- Flujo de email link (Fase 1) ---------------------------
+// ---- Flujo de email link ------------------------------------
 async function completeEmailLinkIfPresent() {
   if (!firebaseReady || !auth.isSignInWithEmailLink(window.location.href)) return;
   let email = localStorage.getItem("emailForSignIn");
-  if (!email) email = window.prompt("Confirma tu email para completar el acceso:") || "";
+  if (!email) email = window.prompt(t("confirmEmail")) || "";
   try {
     await auth.signInWithEmailLink(email, window.location.href);
     localStorage.removeItem("emailForSignIn");
     history.replaceState(null, "", window.location.pathname);
   } catch (e) {
     console.error(e);
-    showToast("⚠️ El enlace no es válido o ha caducado.");
+    showToast(t("emailInvalid"));
   }
 }
 
 // ---- Eventos ------------------------------------------------
 function wireEvents() {
-  // Login Google
   $("google-btn").addEventListener("click", async () => {
     try { await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
-    catch (e) { console.error(e); showToast("⚠️ No se pudo entrar con Google"); }
+    catch (e) { console.error(e); showToast(t("noGoogle")); }
   });
-  // Login email
   $("email-btn").addEventListener("click", async () => {
     const email = $("email-input").value.trim();
     if (!email) { $("email-input").focus(); return; }
     try {
       await auth.sendSignInLinkToEmail(email, { url: location.origin + location.pathname, handleCodeInApp: true });
       localStorage.setItem("emailForSignIn", email);
-      $("email-msg").textContent = "✅ Enlace enviado a " + email + ". Ábrelo en este mismo móvil.";
+      $("email-msg").textContent = t("emailSent", { email });
     } catch (e) { console.error(e); $("email-msg").textContent = "⚠️ " + e.message; }
   });
   $("email-input").addEventListener("keydown", e => { if (e.key === "Enter") $("email-btn").click(); });
@@ -580,6 +801,12 @@ function wireEvents() {
   $("user-btn").addEventListener("click", e => { e.stopPropagation(); $("user-dropdown").classList.toggle("hidden"); });
   document.addEventListener("click", () => $("user-dropdown").classList.add("hidden"));
   $("user-dropdown").addEventListener("click", e => e.stopPropagation());
+
+  // Idioma
+  $("lang-btn").addEventListener("click", () => {
+    $("user-dropdown").classList.add("hidden");
+    setLang(lang === "es" ? "en" : "es");
+  });
 
   // Perfil
   $("profile-btn").addEventListener("click", () => {
@@ -602,7 +829,7 @@ function wireEvents() {
     if (card) location.hash = "#/g/" + card.dataset.gid;
   });
 
-  // Instalar app (PWA)
+  // Instalar app
   $("install-btn").addEventListener("click", handleInstall);
 
   // Cerrar sesión
@@ -612,27 +839,26 @@ function wireEvents() {
   $("back-btn").addEventListener("click", () => { location.hash = "#/"; });
 
   // Grupo: pestañas
-  document.querySelectorAll("[data-gtab]").forEach(t => t.addEventListener("click", () => {
+  document.querySelectorAll("[data-gtab]").forEach(tb => tb.addEventListener("click", () => {
     if (!state.g) return;
-    state.g.tab = t.dataset.gtab;
+    state.g.tab = tb.dataset.gtab;
     renderGroup();
   }));
 
-  // Grupo: base Libre/Ocupado (con aviso antes de pintar los días sin marcar)
+  // Grupo: base Libre/Ocupado (con aviso)
   document.querySelectorAll("[data-base]").forEach(b => b.addEventListener("click", () => {
     if (!state.g) return;
     const target = b.dataset.base;
     if (state.g.baseline === target) return;
-    const word = target === "ocupado" ? "ocupados 🔴" : "libres 🟢";
     askConfirm(
-      "Cambiar tu disponibilidad por defecto",
-      `Se marcarán como ${word} todos los días que NO hayas tocado. Los días que ya marcaste se conservan.`,
-      "Sí, cambiar",
+      t("baseTitle"),
+      target === "ocupado" ? t("baseTextBusy") : t("baseTextFree"),
+      t("baseOk"),
       () => setBaseline(target)
     );
   }));
 
-  // Botones del aviso de confirmación
+  // Aviso de confirmación
   $("confirm-ok").addEventListener("click", () => {
     hide($("confirm-modal"));
     const cb = confirmCb; confirmCb = null;
@@ -659,14 +885,14 @@ function wireEvents() {
   $("share-btn").addEventListener("click", openShare);
   $("share-close").addEventListener("click", () => hide($("share-modal")));
   $("share-copy").addEventListener("click", async () => {
-    try { await navigator.clipboard.writeText($("share-link").value); showToast("📋 Enlace copiado"); }
-    catch (e) { $("share-link").select(); showToast("Selecciona y copia el enlace"); }
+    try { await navigator.clipboard.writeText($("share-link").value); showToast(t("linkCopied")); }
+    catch (e) { $("share-link").select(); showToast(t("selectCopy")); }
   });
   $("share-native").addEventListener("click", async () => {
     if (navigator.share) {
-      try { await navigator.share({ title: "Únete a mi grupo de vacaciones", url: $("share-link").value }); }
+      try { await navigator.share({ title: t("shareSubject"), url: $("share-link").value }); }
       catch (e) {}
-    } else { showToast("Tu navegador no permite compartir directo; usa Copiar"); }
+    } else { showToast(t("noShare")); }
   });
 
   // Unirse
@@ -682,16 +908,17 @@ function wireEvents() {
     if (!btn) return;
     const uid = btn.dataset.kick;
     const m = state.g.members[uid] || {};
-    askConfirm("Expulsar", `¿Quitar a ${m.displayName || "esta persona"} del grupo?`, "Sí, expulsar", () => expelMember(uid));
+    askConfirm(t("expelTitle"), t("expelText", { name: m.displayName || t("somebody") }), t("expelOk"), () => expelMember(uid));
   });
   $("set-leave").addEventListener("click", () => {
-    askConfirm("Salir del grupo", "Dejarás de ver este grupo. Podrás volver con el enlace de invitación.", "Sí, salir", leaveGroup_);
+    askConfirm(t("leaveTitle"), t("leaveText"), t("leaveOk"), leaveGroup_);
   });
   $("set-delete").addEventListener("click", deleteGroup_);
 }
 
 // ---- Arranque -----------------------------------------------
 async function init() {
+  applyI18n();
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js").catch(e => console.warn("SW:", e));
   }
@@ -711,7 +938,7 @@ async function init() {
         paintUser();
         subscribeGroups();
         router();
-      } catch (e) { console.error(e); showToast("⚠️ Error cargando tu perfil"); showLogin(); }
+      } catch (e) { console.error(e); showToast(t("profileErr")); showLogin(); }
     } else {
       showLogin();
     }
