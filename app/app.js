@@ -62,6 +62,27 @@ function askConfirm(title, text, okLabel, cb) {
   show($("confirm-modal"));
 }
 
+// ---- PWA: instalación --------------------------------------
+let deferredPrompt = null;
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferredPrompt = e; });
+
+function isStandalone() {
+  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+}
+async function handleInstall() {
+  $("user-dropdown").classList.add("hidden");
+  if (isStandalone()) { showToast("✅ Ya tienes la app instalada"); return; }
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    return;
+  }
+  const ua = navigator.userAgent;
+  if (/iphone|ipad|ipod/i.test(ua)) showToast('En Safari: Compartir ⬆️ → "Añadir a pantalla de inicio"');
+  else showToast('Menú del navegador (⋮) → "Instalar app" / "Añadir a pantalla de inicio"');
+}
+
 // fechas
 const dateStr = (y, m, d) => `${y}-${pad(m)}-${pad(d)}`;
 const daysInMonth = (y, m) => new Date(y, m, 0).getDate();
@@ -581,6 +602,9 @@ function wireEvents() {
     if (card) location.hash = "#/g/" + card.dataset.gid;
   });
 
+  // Instalar app (PWA)
+  $("install-btn").addEventListener("click", handleInstall);
+
   // Cerrar sesión
   $("signout-btn").addEventListener("click", () => auth.signOut());
 
@@ -668,6 +692,9 @@ function wireEvents() {
 
 // ---- Arranque -----------------------------------------------
 async function init() {
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js").catch(e => console.warn("SW:", e));
+  }
   if (!firebaseReady) {
     hide($("loading-view"));
     $("config-warning").classList.remove("hidden");
